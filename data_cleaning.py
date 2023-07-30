@@ -4,6 +4,7 @@ import pandas as pd
 
 class DataCleaning:
     def __init__(self):
+        dc = DatabaseConnector()
         de = DataExtractor()
         self.df = de.df_rds_table
         self.cleandata = self.clean_user_data()

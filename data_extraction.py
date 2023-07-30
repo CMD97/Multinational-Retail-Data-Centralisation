@@ -1,6 +1,5 @@
 from sqlalchemy import inspect
 from database_utils import DatabaseConnector
-from data_cleaning import DataCleaning
 import pandas as pd
 
 class DataExtractor:

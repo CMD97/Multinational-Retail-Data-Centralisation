@@ -23,5 +23,6 @@ class DatabaseConnector:
         return sql_dict
     
     def upload_to_db(self, cleandata):
+        from data_cleaning import DataCleaning
         upload_engine = create_engine(f"{'postgresql'}+{'psycopg2'}://{self.sql_dict['USER']}:{self.sql_dict['PASSWORD']}@{self.sql_dict['HOST']}:{self.sql_dict['PORT']}/{self.sql_dict['DATABASE']}")
-        dc.cleandata.to_sql('uncleaned', upload_engine)
+        cleandata.to_sql('uncleaned', upload_engine)
