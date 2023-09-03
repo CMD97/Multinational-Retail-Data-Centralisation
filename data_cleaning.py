@@ -14,9 +14,6 @@ class DataCleaning:
 
     def clean_user_data(self):
         # Dropping duplicates & null values
-        cleaned_df = self.df.reset_index()
-        cleaned_df = cleaned_df.set_index('index')
-        # cleaned_df = cleaned_df.apply(self.remove_rows_with_numbers)
         cleaned_df = self.df.dropna()
         cleaned_df = cleaned_df.drop_duplicates()
         
@@ -24,7 +21,7 @@ class DataCleaning:
         cleaned_df['country'] = cleaned_df['country'].astype('category')
         cleaned_df['country_code'] = cleaned_df['country_code'].astype('category')
 
-        # Matching country codes with countries
+        # Ensuring data which has a `country code` of the specified country has the corresponding country in the `country` column.
         cleaned_df.loc[cleaned_df['country_code'] == 'DE', 'country'] = 'Germany'
         cleaned_df.loc[cleaned_df['country'] == 'Germany', 'country_code'] = 'DE'
 
@@ -34,29 +31,27 @@ class DataCleaning:
         cleaned_df.loc[cleaned_df['country_code'] == 'US', 'country'] = 'United States'
         cleaned_df.loc[cleaned_df['country'] == 'United States', 'country_code'] = 'US'
 
-        # dropping rows that do not have a country code as DE/GB/US
-
+        # Dropping rows that do not have a country code as DE/GB/US - in turn dropping other NULL values
         incorrect_rows_with_wrong_country_codes = ~cleaned_df['country_code'].isin(['US','GB','DE'])
         cleaned_df = cleaned_df[~incorrect_rows_with_wrong_country_codes]
+
         # Phone Number formatting done in a different function
         cleaned_df['phone_number'] = cleaned_df['phone_number'].apply(self.standardise_phone_number)
         
         # Setting required columns to timedate
         cleaned_df['date_of_birth'] = pd.to_datetime(cleaned_df['date_of_birth'], errors='coerce').dt.date
         cleaned_df['join_date'] = pd.to_datetime(cleaned_df['join_date'], errors='coerce').dt.date
+
         return cleaned_df
-        # .dt.date look at this. think about how to encompass on more than 1 column
-        # did I see the null values check datatypes.
-        # print(set(cleaned_df["phone_number"].head(25)))
 
-    def standardise_phone_number(self, phone_number): #check regex
+    def standardise_phone_number(self, phone_number):
+
+        # Regex to get all rows present with only numbers
         numbers_only_pattern = re.compile(r'\d+')
-
         matches = re.finditer(numbers_only_pattern, phone_number)
-
         cleaned_numbers = ''.join(match.group() for match in matches)
         
-        # Regex to match 001 and group the 10 digit number.
+        # Regex to remove US phone numbers with 
         US_cleaning_pattern = re.compile(r'\"0+?1(\d{10})\b')
 
         matches = re.finditer(US_cleaning_pattern, cleaned_numbers)
