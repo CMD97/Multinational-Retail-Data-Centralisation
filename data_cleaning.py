@@ -52,10 +52,14 @@ class DataCleaning:
         cleaned_numbers = ''.join(match.group() for match in matches)
         
         # Regex to remove US phone numbers with 
-        US_cleaning_pattern = re.compile(r'\"0+?1(\d{10})\b')
+        US_cleaning_pattern = re.compile(r'^\"(0+)?1(\d{10})\b')
 
+        # Testing how to substitute the group made of \d{10} to replace the entire phone number
         matches = re.finditer(US_cleaning_pattern, cleaned_numbers)
         US_subbed_numbers = US_cleaning_pattern.sub(r"\1", cleaned_numbers)
+
+        # Commented out is other methods I have tried to use.
+
         # double_001_matches = re.finditer(US_cleaning_pattern, cleaned_numbers)
         # removing_001 = cleaned_numbers.replace(to_replace = r'^(001)', value = '',regex=True)
         # cleaned_US_numbers = ''.join(match.group() for match in double_001_matches)
