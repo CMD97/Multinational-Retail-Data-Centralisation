@@ -56,7 +56,7 @@ class DataCleaning:
 
         # Testing how to substitute the group made of \d{10} to replace the entire phone number
         matches = re.finditer(US_cleaning_pattern, cleaned_numbers)
-        US_subbed_numbers = US_cleaning_pattern.sub(r"\1", cleaned_numbers)
+        US_subbed_numbers = US_cleaning_pattern.sub(r"\2", cleaned_numbers)
 
         # Commented out is other methods I have tried to use.
 
