@@ -50,21 +50,29 @@ class DataCleaning:
         numbers_only_pattern = re.compile(r'\d+')
         matches = re.finditer(numbers_only_pattern, phone_number)
         cleaned_numbers = ''.join(match.group() for match in matches)
-        
-        # Regex to remove US phone numbers with 
-        US_cleaning_pattern = re.compile(r'^\"(0+)?1(\d{10})\b')
+        # return cleaned_numbers
 
-        # Testing how to substitute the group made of \d{10} to replace the entire phone number
-        matches = re.finditer(US_cleaning_pattern, cleaned_numbers)
-        US_subbed_numbers = US_cleaning_pattern.sub(r"\2", cleaned_numbers)
+        # Regex to remove the `001` out of a US phone number
+        US_cleaning_pattern = re.compile(r"^(0+)?1(\d{10})\b")
+        match = re.match(US_cleaning_pattern, cleaned_numbers)
+        if match:
+            cleaned_numbers = match.group(2)
+            return cleaned_numbers
+        else:
+            return cleaned_numbers
+
 
         # Commented out is other methods I have tried to use.
+
+        # Testing how to substitute the group made of \d{10} to replace the entire phone number
+        # matches = re.finditer(US_cleaning_pattern, cleaned_numbers)
+
+        # for cleaned_numbers in matches:
+        #     US_cleaning_pattern.sub(r"\2", cleaned_numbers)
 
         # double_001_matches = re.finditer(US_cleaning_pattern, cleaned_numbers)
         # removing_001 = cleaned_numbers.replace(to_replace = r'^(001)', value = '',regex=True)
         # cleaned_US_numbers = ''.join(match.group() for match in double_001_matches)
-
-        return US_subbed_numbers
 
 if __name__ == '__main__':
     DataCleaning()
