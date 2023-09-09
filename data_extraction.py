@@ -30,5 +30,3 @@ class DataExtractor:
         card_details_df.drop("card_number expiry_date", axis=1, inplace=True)
         card_details_df.drop("Unnamed: 0", axis=1, inplace=True)
         return card_details_df
-    ## AFTER DOING THIS, IT HAS ONLY SHOWN ME ONE PAGE WORTH.
-    ## 55 total rows on SQL./
