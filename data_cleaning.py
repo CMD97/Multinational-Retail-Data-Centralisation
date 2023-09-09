@@ -6,47 +6,52 @@ import re
 class DataCleaning:
     def __init__(self):
         de = DataExtractor()
-        self.df = de.df_rds_table
+        self.users_df = de.df_rds_table
         self.cleandata = self.clean_user_data()
+        self.card_df = de.card_details_df
+        self.clean_card_df = self.clean_card_data()
         dc = DatabaseConnector
-        dc().upload_to_db(self.cleandata)
-        # print(self.cleandata)
+        dc().upload_to_db(self.clean_card_df)
 
     def clean_user_data(self):
         # Dropping duplicates & null values
-        cleaned_df = self.df.dropna()
-        cleaned_df = cleaned_df.drop_duplicates()
+        cleaning_users_df = self.users_df.dropna()
+        cleaning_users_df = cleaning_users_df.drop_duplicates()
+
+        # Dropping the "index" column that's taken through to pgAdmin4
+        cleaning_users_df.drop("index", axis=1, inplace=True)
+
         
         # Setting required types to category
-        cleaned_df['country'] = cleaned_df['country'].astype('category')
-        cleaned_df['country_code'] = cleaned_df['country_code'].astype('category')
+        cleaning_users_df['country'] = cleaning_users_df['country'].astype('category')
+        cleaning_users_df['country_code'] = cleaning_users_df['country_code'].astype('category')
 
         # Ensuring data which has a `country code` of the specified country has the corresponding country in the `country` column.
-        cleaned_df.loc[cleaned_df['country_code'] == 'DE', 'country'] = 'Germany'
-        cleaned_df.loc[cleaned_df['country'] == 'Germany', 'country_code'] = 'DE'
+        cleaning_users_df.loc[cleaning_users_df['country_code'] == 'DE', 'country'] = 'Germany'
+        cleaning_users_df.loc[cleaning_users_df['country'] == 'Germany', 'country_code'] = 'DE'
 
-        cleaned_df.loc[cleaned_df['country_code'] == 'GB', 'country'] = 'United Kingdom'
-        cleaned_df.loc[cleaned_df['country'] == 'United Kingdom', 'country_code'] = 'GB'
+        cleaning_users_df.loc[cleaning_users_df['country_code'] == 'GB', 'country'] = 'United Kingdom'
+        cleaning_users_df.loc[cleaning_users_df['country'] == 'United Kingdom', 'country_code'] = 'GB'
 
-        cleaned_df.loc[cleaned_df['country_code'] == 'US', 'country'] = 'United States'
-        cleaned_df.loc[cleaned_df['country'] == 'United States', 'country_code'] = 'US'
+        cleaning_users_df.loc[cleaning_users_df['country_code'] == 'US', 'country'] = 'United States'
+        cleaning_users_df.loc[cleaning_users_df['country'] == 'United States', 'country_code'] = 'US'
 
         # Dropping rows that do not have a country code as DE/GB/US - in turn dropping other NULL values
-        incorrect_rows_with_wrong_country_codes = ~cleaned_df['country_code'].isin(['US','GB','DE'])
-        cleaned_df = cleaned_df[~incorrect_rows_with_wrong_country_codes]
+        incorrect_rows_with_wrong_country_codes = ~cleaning_users_df['country_code'].isin(['US','GB','DE'])
+        cleaning_users_df = cleaning_users_df[~incorrect_rows_with_wrong_country_codes]
 
         # Phone Number formatting done in a different function
-        cleaned_df['phone_number'] = cleaned_df['phone_number'].apply(self.standardise_phone_number)
+        cleaning_users_df['phone_number'] = cleaning_users_df['phone_number'].apply(self.standardise_phone_number)
         
         # Setting required columns to timedate
-        cleaned_df['date_of_birth'] = pd.to_datetime(cleaned_df['date_of_birth'], errors='coerce').dt.date
-        cleaned_df['join_date'] = pd.to_datetime(cleaned_df['join_date'], errors='coerce').dt.date
+        cleaning_users_df['date_of_birth'] = pd.to_datetime(cleaning_users_df['date_of_birth'], errors='coerce').dt.date
+        cleaning_users_df['join_date'] = pd.to_datetime(cleaning_users_df['join_date'], errors='coerce').dt.date
 
-        return cleaned_df
+        return cleaning_users_df
 
-    def standardise_phone_number(self, phone_number):
+    def standardise_phone_number(self, phone_number):                       # standardising phone numbers --- improvements to be made upon the phone_number
 
-        # Regex to get all rows present with only numbers
+        # Regex to get all rows present with only numbers                       
         numbers_only_pattern = re.compile(r'\d+')
         matches = re.finditer(numbers_only_pattern, phone_number)
         cleaned_numbers = ''.join(match.group() for match in matches)
@@ -60,19 +65,33 @@ class DataCleaning:
             return cleaned_numbers
         else:
             return cleaned_numbers
+    
+    # Cleaning the card details data
+    def clean_card_data(self):
 
+        # Taking the card details from the init method into the function, dropping NaN rows & duplicates.
+        cleaning_card_df = self.card_df.dropna()
+        cleaning_card_df = cleaning_card_df.drop_duplicates()
+        
+        # Using a regex on the expiry date to check for null values and dropping them.
+        expiry_date_pattern = re.compile(r"\d{2}\/\d{2}")
+        rows_with_incorrect_expiry = ~cleaning_card_df['expiry_date'].str.contains(expiry_date_pattern)
+        cleaning_card_df = cleaning_card_df[~rows_with_incorrect_expiry]
 
-        # Commented out is other methods I have tried to use.
+        # Changing expiry dates to be the last day of the month as they usually will be and changing to date dtype.
+        cleaning_card_df['expiry_date'] = cleaning_card_df['expiry_date'].apply(self.convert_expiry_date)
 
-        # Testing how to substitute the group made of \d{10} to replace the entire phone number
-        # matches = re.finditer(US_cleaning_pattern, cleaned_numbers)
+        # Changing the payment date confirmed dtype to a date dtype.
+        cleaning_card_df['date_payment_confirmed'] = pd.to_datetime(cleaning_card_df['date_payment_confirmed'], format='%Y-%m-%d', errors='coerce').dt.date
 
-        # for cleaned_numbers in matches:
-        #     US_cleaning_pattern.sub(r"\2", cleaned_numbers)
+        return cleaning_card_df
 
-        # double_001_matches = re.finditer(US_cleaning_pattern, cleaned_numbers)
-        # removing_001 = cleaned_numbers.replace(to_replace = r'^(001)', value = '',regex=True)
-        # cleaned_US_numbers = ''.join(match.group() for match in double_001_matches)
+    def convert_expiry_date(self, date_str):
+        month, expiry_year = date_str.split('/')
+        expiry_year = '20' + expiry_year # Expiry dates will only be present for the expiry_year `2000+` hence `20 + expiry_year`
+        date_object = pd.Timestamp(f'{expiry_year}-{month}-01') + pd.DateOffset(months=1, days=-1)
+        return date_object.date()
+        
 
 if __name__ == '__main__':
     DataCleaning()

@@ -23,7 +23,7 @@ class DatabaseConnector:
             sql_dict=yaml.safe_load(sqlcreds)
         return sql_dict
 
-# engine creation to AWS using the credentials of rds_dict.
-    def upload_to_db(self, cleandata):      
+# engine creation to SQL using the credentials of sql_dict.
+    def upload_to_db(self, card_details_df):      
         upload_engine = create_engine(f"{'postgresql'}+{'psycopg2'}://{self.sql_dict['USER']}:{self.sql_dict['PASSWORD']}@{self.sql_dict['HOST']}:{self.sql_dict['PORT']}/{self.sql_dict['DATABASE']}")
-        cleandata.to_sql('numbertest', upload_engine, if_exists='replace')
+        card_details_df.to_sql('dim_card', upload_engine, if_exists='replace', index=False)
