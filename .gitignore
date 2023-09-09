@@ -1,4 +1,6 @@
 db_creds.yaml
 to_sql.yaml
+api.yaml
 area-codes.csv
 mrdc.ipynb
+__pycache__
