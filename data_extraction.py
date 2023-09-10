@@ -2,15 +2,20 @@ from sqlalchemy import inspect
 from database_utils import DatabaseConnector
 import pandas as pd
 import tabula
+import requests
 
 class DataExtractor:
     def __init__(self):
-        db = DatabaseConnector()
-        self.engine = db.init_db_engine()
+        dc = DatabaseConnector()
+        self.engine = dc.init_db_engine()
+        self.headers = dc.read_api_creds()
         self.table_names = self.list_db_table()
         self.df_rds_table = self.read_rds_table(self.table_names)
         self.card_details_df = self.retrieve_pdf_data()
-    #lists names of the the table from engine in DatabaseConnector
+        self.number_of_stores = self.list_number_of_stores()
+        self.store_details_df = self.retrieve_stores_data()
+
+    # Lists names of the the table from engine in DatabaseConnector
     def list_db_table(self):
         self.engine = self.engine.connect()
         inspector = inspect(self.engine)
@@ -30,3 +35,20 @@ class DataExtractor:
         card_details_df.drop("card_number expiry_date", axis=1, inplace=True)
         card_details_df.drop("Unnamed: 0", axis=1, inplace=True)
         return card_details_df
+
+    def list_number_of_stores(self):
+        number_of_stores_api = requests.get('https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores', headers=self.headers).json() 
+        number_of_stores = number_of_stores_api['number_stores']
+        return number_of_stores
+    
+    def retrieve_stores_data(self):
+        store_details = []
+        for store_number in range(0, self.number_of_stores):
+            store_data = requests.get(f'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}', headers=self.headers)
+            if store_data.status_code == 200:
+                store_details.append(store_data.json())
+            else:
+                print(f'Error fetching data for store {store_number}')
+
+        store_details_df = pd.DataFrame(store_details)
+        return store_details_df

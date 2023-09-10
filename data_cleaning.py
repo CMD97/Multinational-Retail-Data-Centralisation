@@ -5,13 +5,24 @@ import re
 
 class DataCleaning:
     def __init__(self):
-        de = DataExtractor()
-        self.users_df = de.df_rds_table
-        self.cleandata = self.clean_user_data()
-        self.card_df = de.card_details_df
-        self.clean_card_df = self.clean_card_data()
+        de = DataExtractor()    # Initialising the DataExtractor class to begin the process of cleaning.
+
+        # Cleaning of users in the sales data.
+        # self.users_df = de.df_rds_table
+        # self.clean_data = self.clean_user_data()
+
+        # Cleaning of the card details in the sales data.
+        # self.card_df = de.card_details_df
+        # self.clean_card_df = self.clean_card_data()
+
+        # Cleaning of the store details in the sales data.
+        self.store_data_df = de.store_details_df
+        self.clean_store_df = self.clean_store_data()
+        # print(self.clean_store_df)
+
+        # Uploading to the SQL database which is taken in within the database_utils file.
         dc = DatabaseConnector
-        dc().upload_to_db(self.clean_card_df)
+        dc().upload_to_db(self.clean_store_df)
 
     def clean_user_data(self):
         # Dropping duplicates & null values
@@ -91,7 +102,15 @@ class DataCleaning:
         expiry_year = '20' + expiry_year # Expiry dates will only be present for the expiry_year `2000+` hence `20 + expiry_year`
         date_object = pd.Timestamp(f'{expiry_year}-{month}-01') + pd.DateOffset(months=1, days=-1)
         return date_object.date()
+    
+    def clean_store_data(self):
+        # cleaning_store_data_df = self.store_data_df.dropna()
+        # cleaning_store_data_df = cleaning_store_data_df.drop_duplicates()
+        cleaning_store_data_df = self.store_data_df
         
+        return cleaning_store_data_df
+    
 
+    
 if __name__ == '__main__':
     DataCleaning()
