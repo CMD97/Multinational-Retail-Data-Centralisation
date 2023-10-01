@@ -6,7 +6,7 @@ import numpy as np
 
 class DataCleaning:
     def __init__(self):
-        de = DataExtractor()   # Initialising the DataExtractor class to begin the process of cleaning.
+        de = DataExtractor()  # Creating a reference to the DataExtractor class to begin the process of cleaning.
 
         # Cleaning of users in the sales data.
         # self.users_df = de.df_rds_table
@@ -17,13 +17,13 @@ class DataCleaning:
         # self.clean_card_df = self.clean_card_data()
 
         # Cleaning of the store details in the sales data.
-        self.store_data_df = de.store_details_df
+        # self.store_data_df = de.store_details_df()
+        self.store_data_df = pd.read_csv('store_details.csv')
         self.clean_store_df = self.clean_store_data()
-        # print(self.clean_store_df)
 
         # Uploading to the SQL database which is taken in within the database_utils file.
         dc = DatabaseConnector
-        dc().upload_to_db(self.clean_store_df)
+        dc.upload_to_db(self.users_df)
 
     def clean_user_data(self):
         # Dropping duplicates & null values
@@ -133,6 +133,7 @@ class DataCleaning:
         cleaning_store_data_df['country_code'] = cleaning_store_data_df['country_code'].astype('category')
 
         # Setting opening_date column to be the correct datatype.
+        cleaning_store_data_df['opening_date'] = cleaning_store_data_df['opening_date'].apply(self.standardise_date_format)
         cleaning_store_data_df['opening_date'] = pd.to_datetime(cleaning_store_data_df['opening_date'], errors='coerce').dt.date
 
         # Reordering columns
@@ -150,8 +151,23 @@ class DataCleaning:
         cleaned_numbers = ''.join(match.group() for match in matches)
         return cleaned_numbers
     
-        
-    
+    # Function to return all the date strings into the right format
+    def standardise_date_format(self, date_strings):
+        date_formats = ['%Y-%m-%d', '%B %Y %d', '%Y/%m/%d', '%Y %B %d']
+
+        for date_format in date_formats:
+            try:
+                formatted_date = pd.to_datetime(date_strings, format=date_format, errors='raise')
+                return formatted_date.strftime('%Y-%m-%d')
+            except ValueError:
+                continue
+
+        return date_strings
+
+    def convert_product_weights(self):
+        pass
+
+
 
 
 if __name__ == '__main__':

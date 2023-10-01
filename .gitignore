@@ -2,5 +2,7 @@ db_creds.yaml
 to_sql.yaml
 api.yaml
 area-codes.csv
+store_details.csv
+products.csv
 mrdc.ipynb
 __pycache__

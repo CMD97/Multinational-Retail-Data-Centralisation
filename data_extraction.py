@@ -3,11 +3,12 @@ from database_utils import DatabaseConnector
 import pandas as pd
 import tabula
 import requests
+import boto3
 
 class DataExtractor:
     def __init__(self):
-        dc = DatabaseConnector()
-        self.engine = dc.init_db_engine()
+        dc = DatabaseConnector
+        self.engine = dc.init_db_engine(self)
         self.headers = dc.read_api_creds()
         self.table_names = self.list_db_table()
         self.df_rds_table = self.read_rds_table(self.table_names)
@@ -52,3 +53,10 @@ class DataExtractor:
 
         store_details_df = pd.DataFrame(store_details)
         return store_details_df
+    
+    def extract_from_s3(self):
+        s3 = boto3.client('s3')
+        s3.download_file('data-handling-public', 'products.csv', 'products.csv')
+        products_df = pd.read_csv('products.csv')
+        return products_df
+        
