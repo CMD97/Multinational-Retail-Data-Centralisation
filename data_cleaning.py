@@ -163,9 +163,29 @@ class DataCleaning:
                 continue
 
         return date_strings
-
-    def convert_product_weights(self):
+    
+    def clean_products_data(self):
         pass
+
+    def convert_product_weights(self, weight_string):
+        # Using a regex to iterate over the rows looking for any blank spaces at the end of a weight.
+        weight_string = re.sub(r'[^a-zA-Z]+$', '', weight_string) 
+
+        # Converting all weights within the weight column to 
+        if " x " in weight_string:
+            weight_string = weight_string.split(" x ")
+            weight_string = float(weight_string[0]) * float(weight_string[1][:-1])
+            return weight_string
+        elif "kg" in weight_string:
+            return float(weight_string.replace('kg', ''))
+        elif "g" in weight_string: 
+            return float(weight_string.replace('g','')) * 0.001
+        elif "ml" in weight_string:
+            return float(weight_string.replace('ml','')) * 0.001
+        elif "oz" in weight_string:
+            return float(weight_string.replace('oz', '')) / 35.274
+        else:
+            return weight_string
 
 
 
