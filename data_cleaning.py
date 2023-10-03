@@ -6,7 +6,7 @@ import numpy as np
 
 class DataCleaning:
     def __init__(self):
-        de = DataExtractor()  # Creating a reference to the DataExtractor class to begin the process of cleaning.
+        # de = DataExtractor()  # Creating a reference to the DataExtractor class to begin the process of cleaning.
 
         # Cleaning of users in the sales data.
         # self.users_df = de.df_rds_table
@@ -17,13 +17,16 @@ class DataCleaning:
         # self.clean_card_df = self.clean_card_data()
 
         # Cleaning of the store details in the sales data.
-        # self.store_data_df = de.store_details_df()
-        self.store_data_df = pd.read_csv('store_details.csv')
-        self.clean_store_df = self.clean_store_data()
+        # self.store_data_df = pd.read_csv('store_details.csv')
+        # self.clean_store_df = self.clean_store_data()
+
+        # Cleaning of the products in the sales data.
+        self.products_data_df = pd.read_csv('products.csv')
+        self.clean_products_df = self.clean_products_data()
 
         # Uploading to the SQL database which is taken in within the database_utils file.
-        dc = DatabaseConnector
-        dc.upload_to_db(self.users_df)
+        dc = DatabaseConnector()
+        dc.upload_to_db(self.clean_products_df)
 
     def clean_user_data(self):
         # Dropping duplicates & null values
@@ -144,6 +147,7 @@ class DataCleaning:
         cleaning_store_data_df.rename(columns={'locality': 'location'}, inplace=True)
 
         return cleaning_store_data_df
+    
     # Function to get all rows present with only numbers  
     def staff_numbers_regex(self, staff_numbers):                       
         discarding_letters_pattern = re.compile(r'\d+')
@@ -165,13 +169,43 @@ class DataCleaning:
         return date_strings
     
     def clean_products_data(self):
-        pass
+        # Dropping any rows that are null & dropping the original index
+        cleaning_products_df = self.products_data_df.copy()
+        cleaning_products_df = cleaning_products_df.dropna()
+        cleaning_products_df.drop("Unnamed: 0", axis=1, inplace=True)
+
+        # Removing the `£` from the rows in the column.
+        cleaning_products_df['product_price'] = cleaning_products_df['product_price'].str.replace('£', '', regex=False)
+        
+        # After ensuring there is no '£' sign within the column, the regex boolean will mark rows as True if they have anything except numbers and decimal points.
+        incorrect_rows_with_invalid_prices = cleaning_products_df['product_price'].str.contains(r'[a-zA-Z]+')
+        cleaning_products_df = cleaning_products_df[~incorrect_rows_with_invalid_prices]
+
+        # Cleaning the weight column to convert to kg & convert to dtype `float`
+        cleaning_products_df['weight'] = cleaning_products_df['weight'].apply(self.convert_product_weights)
+
+        # Standardising the date & converting them to datetime objects.
+        cleaning_products_df['date_added'] = cleaning_products_df['date_added'].apply(self.standardise_date_format)
+        cleaning_products_df['date_added'] = pd.to_datetime(cleaning_products_df['date_added'], errors='coerce').dt.date
+        
+        # Converting columns to correct dtypes.
+        cleaning_products_df['category'] = cleaning_products_df['category'].astype('category')
+        cleaning_products_df['category'] = cleaning_products_df['category'].astype('category')
+        cleaning_products_df['product_price'] = cleaning_products_df['product_price'].astype(float)
+        cleaning_products_df['weight'] = cleaning_products_df['weight'].astype(float)
+
+        # Renaming columns to show units at the top & to give better clarity on the columns rows.
+        cleaning_products_df.rename(columns={'weight': 'weight (kg)'}, inplace=True)
+        cleaning_products_df.rename(columns={'product_price': 'product_price (GBP)'}, inplace=True)
+        cleaning_products_df.rename(columns={'removed': 'stock'}, inplace=True)
+
+        return cleaning_products_df
 
     def convert_product_weights(self, weight_string):
-        # Using a regex to iterate over the rows looking for any blank spaces at the end of a weight.
+        # Using a regex to iterate over the rows removing anything that isn't a letter from the end of the string.
         weight_string = re.sub(r'[^a-zA-Z]+$', '', weight_string) 
 
-        # Converting all weights within the weight column to 
+        # Converting all weights within the weight column to standardised kg.
         if " x " in weight_string:
             weight_string = weight_string.split(" x ")
             weight_string = float(weight_string[0]) * float(weight_string[1][:-1])
@@ -186,8 +220,6 @@ class DataCleaning:
             return float(weight_string.replace('oz', '')) / 35.274
         else:
             return weight_string
-
-
 
 
 if __name__ == '__main__':

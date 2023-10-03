@@ -25,9 +25,9 @@ class DatabaseConnector:
         return sql_dict
 
 # engine creation to SQL using the credentials of sql_dict.
-    def upload_to_db(self, card_details_df):      
+    def upload_to_db(self, clean_products_df):      
         upload_engine = create_engine(f"{'postgresql'}+{'psycopg2'}://{self.sql_dict['USER']}:{self.sql_dict['PASSWORD']}@{self.sql_dict['HOST']}:{self.sql_dict['PORT']}/{self.sql_dict['DATABASE']}")
-        card_details_df.to_sql('[insert_table_name_here]', upload_engine, if_exists='replace', index=False)
+        clean_products_df.to_sql('dim_products', upload_engine, if_exists='replace', index=False)
 
 # Reading in the headers needed for the API request.
     def read_api_creds(self):
