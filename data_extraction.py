@@ -7,21 +7,21 @@ import boto3
 
 class DataExtractor:
     def __init__(self):
-        dc = DatabaseConnector
-        self.engine = dc.init_db_engine(self)
-        self.headers = dc.read_api_creds()
+        dc = DatabaseConnector()
+        self.engine = dc.init_db_engine()
+        # self.headers = dc.read_api_creds()
         self.table_names = self.list_db_table()
         self.df_rds_table = self.read_rds_table(self.table_names)
-        self.card_details_df = self.retrieve_pdf_data()
-        self.number_of_stores = self.list_number_of_stores()
-        self.store_details_df = self.retrieve_stores_data()
+        # self.card_details_df = self.retrieve_pdf_data()
+        # self.number_of_stores = self.list_number_of_stores()
+        # self.store_details_df = self.retrieve_stores_data()
 
     # Lists names of the the table from engine in DatabaseConnector
     def list_db_table(self):
         self.engine = self.engine.connect()
         inspector = inspect(self.engine)
         table_names = inspector.get_table_names()
-        return table_names[1]
+        return table_names[2]
     
     #Extract database table to a Pandas Dataframe
     def read_rds_table(self, table_names):

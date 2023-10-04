@@ -6,7 +6,7 @@ import numpy as np
 
 class DataCleaning:
     def __init__(self):
-        # de = DataExtractor()  # Creating a reference to the DataExtractor class to begin the process of cleaning.
+        de = DataExtractor()  # Creating a reference to the DataExtractor class to begin the process of cleaning.
 
         # Cleaning of users in the sales data.
         # self.users_df = de.df_rds_table
@@ -21,12 +21,16 @@ class DataCleaning:
         # self.clean_store_df = self.clean_store_data()
 
         # Cleaning of the products in the sales data.
-        self.products_data_df = pd.read_csv('products.csv')
-        self.clean_products_df = self.clean_products_data()
+        # self.products_data_df = pd.read_csv('products.csv')
+        # self.clean_products_df = self.clean_products_data()
+
+        # Cleaning of the orders in the sales data.
+        self.orders_df = de.df_rds_table
+        self.clean_orders_df = self.clean_orders_data()
 
         # Uploading to the SQL database which is taken in within the database_utils file.
         dc = DatabaseConnector()
-        dc.upload_to_db(self.clean_products_df)
+        dc.upload_to_db(self.clean_orders_df)
 
     def clean_user_data(self):
         # Dropping duplicates & null values
@@ -220,6 +224,21 @@ class DataCleaning:
             return float(weight_string.replace('oz', '')) / 35.274
         else:
             return weight_string
+
+    def clean_orders_data(self):
+        cleaning_orders = self.orders_df.copy()
+
+    # Dropping columns that are unnecessary or have the majority of rows with NULL in them.
+        cleaning_orders = cleaning_orders.drop(['level_0', 'index', '1', 'first_name', 'last_name'], axis=1)
+
+        # Card number was originally a bigint, this should be a string.
+        cleaning_orders['card_number'] = cleaning_orders['card_number'].astype(str)
+
+        # Product Quantity was originally a bigint, upon investigation product quantity only goes to 15, therefore can be stored as dtype int32.
+        cleaning_orders['product_quantity'] = cleaning_orders['product_quantity'].astype('int32')
+        return cleaning_orders
+        
+
 
 
 if __name__ == '__main__':
