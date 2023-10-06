@@ -17,7 +17,7 @@ class DataCleaning:
         # self.clean_card_df = self.clean_card_data()
 
         # Cleaning of the store details in the sales data.
-        # self.store_data_df = pd.read_csv('store_details.csv')
+        # self.store_data_df = de.store_details_df
         # self.clean_store_df = self.clean_store_data()
 
         # Cleaning of the products in the sales data.
@@ -25,12 +25,16 @@ class DataCleaning:
         # self.clean_products_df = self.clean_products_data()
 
         # Cleaning of the orders in the sales data.
-        self.orders_df = de.df_rds_table
-        self.clean_orders_df = self.clean_orders_data()
+        # self.orders_df = de.df_rds_table
+        # self.clean_orders_df = self.clean_orders_data()
+
+        # Cleaning of the date_details.
+        self.date_details_df = de.extract_from_s3()
+        self.clean_date_details_df = self.clean_date_details()
 
         # Uploading to the SQL database which is taken in within the database_utils file.
         dc = DatabaseConnector()
-        dc.upload_to_db(self.clean_orders_df)
+        dc.upload_to_db(self.clean_date_details_df)
 
     def clean_user_data(self):
         # Dropping duplicates & null values
@@ -237,8 +241,29 @@ class DataCleaning:
         # Product Quantity was originally a bigint, upon investigation product quantity only goes to 15, therefore can be stored as dtype int32.
         cleaning_orders['product_quantity'] = cleaning_orders['product_quantity'].astype('int32')
         return cleaning_orders
-        
+    
+    def clean_date_details(self):
+        cleaning_date_details_df = self.date_details_df.copy()
 
+        # Dropping rows where the year 
+        incorrect_rows = ~cleaning_date_details_df['year'].str.contains(r'^\d{4}$')
+        cleaning_date_details_df = cleaning_date_details_df[~incorrect_rows]
+
+        # Creating a new timestamp column from the 4 columns the timestamp was spread over.
+        cleaning_date_details_df['sale_timestamp'] = (cleaning_date_details_df['year'] + '-' + cleaning_date_details_df['month'] + '-' + 
+                                                       cleaning_date_details_df['day'] + ' ' + cleaning_date_details_df['timestamp'])
+        
+        # Dropping the columns that were used to concatenate the new timestamp
+        cleaning_date_details_df.drop(['timestamp', 'month', 'year', 'day'], axis=1, inplace=True)
+
+        # Changing the new timestamp to a datetime object.
+        cleaning_date_details_df['sale_timestamp'] = pd.to_datetime(cleaning_date_details_df['sale_timestamp'])
+        
+        # Reordering columns
+        new_column_order = ['sale_timestamp', 'time_period', 'date_uuid']
+        cleaning_date_details_df = cleaning_date_details_df[new_column_order]
+
+        return cleaning_date_details_df
 
 
 if __name__ == '__main__':

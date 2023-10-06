@@ -10,8 +10,8 @@ class DataExtractor:
         dc = DatabaseConnector()
         self.engine = dc.init_db_engine()
         # self.headers = dc.read_api_creds()
-        self.table_names = self.list_db_table()
-        self.df_rds_table = self.read_rds_table(self.table_names)
+        # self.table_names = self.list_db_table()
+        # self.df_rds_table = self.read_rds_table(self.table_names)
         # self.card_details_df = self.retrieve_pdf_data()
         # self.number_of_stores = self.list_number_of_stores()
         # self.store_details_df = self.retrieve_stores_data()
@@ -56,7 +56,7 @@ class DataExtractor:
     
     def extract_from_s3(self):
         s3 = boto3.client('s3')
-        s3.download_file('data-handling-public', 'products.csv', 'products.csv')
-        products_df = pd.read_csv('products.csv')
-        return products_df
+        s3.download_file('data-handling-public', 'date_details.json', 'date_details.json')
+        date_details_df = pd.read_json('date_details.json')
+        return date_details_df
         
