@@ -245,8 +245,9 @@ class DataCleaning:
     def clean_date_details(self):
         cleaning_date_details_df = self.date_details_df.copy()
 
-        # Dropping rows where the year 
-        incorrect_rows = ~cleaning_date_details_df['year'].str.contains(r'^\d{4}$')
+        # Dropping rows where the year is not exactly 4 digits long.
+        year_pattern = re.compile(r'^\d{4}$')
+        incorrect_rows = ~cleaning_date_details_df['year'].str.contains(year_pattern)
         cleaning_date_details_df = cleaning_date_details_df[~incorrect_rows]
 
         # Creating a new timestamp column from the 4 columns the timestamp was spread over.
