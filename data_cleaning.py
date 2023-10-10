@@ -216,7 +216,7 @@ class DataCleaning:
         # Converting all weights within the weight column to standardised kg.
         if " x " in weight_string:
             weight_string = weight_string.split(" x ")
-            weight_string = float(weight_string[0]) * float(weight_string[1][:-1])
+            weight_string = float(weight_string[0]) * float(weight_string[1][:-1]) /1000
             return weight_string
         elif "kg" in weight_string:
             return float(weight_string.replace('kg', ''))
