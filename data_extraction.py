@@ -59,4 +59,3 @@ class DataExtractor:
         s3.download_file('data-handling-public', 'date_details.json', 'date_details.json')
         date_details_df = pd.read_json('date_details.json')
         return date_details_df
-        

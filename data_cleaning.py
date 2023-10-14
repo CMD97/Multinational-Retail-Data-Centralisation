@@ -99,6 +99,10 @@ class DataCleaning:
         rows_with_incorrect_expiry = ~cleaning_card_df['expiry_date'].str.contains(expiry_date_pattern)
         cleaning_card_df = cleaning_card_df[~rows_with_incorrect_expiry]
 
+        # Using a regex to ensure card_number now has only numbers inside
+        cleaning_card_df['card_number'] = cleaning_card_df['card_number'].astype(str)
+        cleaning_card_df['card_number'] = cleaning_card_df['card_number'].apply(self.returning_numbers_only)
+
         # Changing expiry dates to be the last day of the month as they usually will be and changing to date dtype.
         cleaning_card_df['expiry_date'] = cleaning_card_df['expiry_date'].apply(self.convert_expiry_date)
 
@@ -126,7 +130,7 @@ class DataCleaning:
         cleaning_store_data_df = cleaning_store_data_df[~incorrect_rows_with_wrong_country_codes]
 
         # Using a regex to ensure staff_numbers now has only numbers inside
-        cleaning_store_data_df['staff_numbers'] = cleaning_store_data_df['staff_numbers'].apply(self.staff_numbers_regex)
+        cleaning_store_data_df['staff_numbers'] = cleaning_store_data_df['staff_numbers'].apply(self.returning_numbers_only)
 
         # Ensuring data which has a `country code` of the specified country has the corresponding continent in the `contient` column.
         cleaning_store_data_df.loc[(cleaning_store_data_df['country_code'] == 'DE') | (cleaning_store_data_df['country_code'] == 'GB'), 'continent'] = 'Europe'
@@ -157,9 +161,9 @@ class DataCleaning:
         return cleaning_store_data_df
     
     # Function to get all rows present with only numbers  
-    def staff_numbers_regex(self, staff_numbers):                       
+    def returning_numbers_only(self, uncleaned_number):                       
         discarding_letters_pattern = re.compile(r'\d+')
-        matches = re.finditer(discarding_letters_pattern, staff_numbers)
+        matches = re.finditer(discarding_letters_pattern, uncleaned_number)
         cleaned_numbers = ''.join(match.group() for match in matches)
         return cleaned_numbers
     
@@ -205,7 +209,7 @@ class DataCleaning:
         # Renaming columns to show units at the top & to give better clarity on the columns rows.
         cleaning_products_df.rename(columns={'weight': 'weight (kg)'}, inplace=True)
         cleaning_products_df.rename(columns={'product_price': 'product_price (GBP)'}, inplace=True)
-        cleaning_products_df.rename(columns={'removed': 'stock'}, inplace=True)
+        cleaning_products_df.rename(columns={'removed': 'still_available'}, inplace=True)
 
         return cleaning_products_df
 
