@@ -44,3 +44,13 @@ The datasets are then made into Pandas Dataframes before being analysed within s
 After the initial cleaning was done, the dataset was then uploaded to the `uncleaned` database located on pgadmin4, which allowed for better visualisation that verified the datasets were clean, by querying each column using `WHERE` statements that would select rows that proved to be anomalies.
 
 Once the datasets were cleaned using the Pandas library, the finalised data was taken to the `DatabaseConnector` class were it was uploaded to the database `sales_data`, where it was centralised and ready for querying in postgreSQL.
+
+### Milestone 3 & 4
+
+Milestones 3 & 4 were both performed using postgreSQL inside pgAdmin4. As there is no recollection of them on VSCode, there is `.txt` files that are named respectively which have the queries inside that were executed, as well as a detail of what was being requested.
+
+Below is a brief explanation of both:
+
+**Milestone 3** : This milestone entailed development of the schema, and ensuring each column within each table has the correct datatype set to the column in order to query the data correctly.
+
+**Milestone 4** : After the schema and corrected datatypes were in place, the fictional company began to set analysis tasks to be able to utilise the SQL queries.

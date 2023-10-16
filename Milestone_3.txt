@@ -1,0 +1,205 @@
+**Milestone 3 of the Multi Centralisation Data Project is within SQL on pgadmin4**
+
+> Each task is set to be with an unknown CHAR number for VARCHAR, this was solved by performing the following syntax on each column:
+
+SELECT MAX(LENGTH(column_name))
+FROM table_name
+
+This then found the maximum length of characters for each column, which was then rounded to the nearest 5 for clarity.
+
+**Task 1: Casting the columns of the orders_table to the correct data types.**
+
++------------------+--------------------+--------------------+
+|   orders_table   | current data type  | required data type |
++------------------+--------------------+--------------------+
+| date_uuid        | TEXT               | UUID               |
+| user_uuid        | TEXT               | UUID               |
+| card_number      | TEXT               | VARCHAR(20)        |
+| store_code       | TEXT               | VARCHAR(15)        |
+| product_code     | TEXT               | VARCHAR(15)        |
+| product_quantity | BIGINT             | SMALLINT           |
++------------------+--------------------+--------------------+
+
+ALTER TABLE orders_table
+ALTER COLUMN date_uuid TYPE UUID USING date_uuid::UUID,
+ALTER COLUMN user_uuid TYPE UUID USING user_uuid::UUID,
+ALTER COLUMN card_number TYPE VARCHAR(20),
+ALTER COLUMN store_code TYPE VARCHAR(15),
+ALTER COLUMN product_code TYPE VARCHAR(15),
+ALTER COLUMN product_quantity TYPE SMALLINT;
+
+**Task 2: Casting the columns of the dim_users table to the correct datatypes.**
+
++----------------+--------------------+--------------------+
+| dim_user_table | current data type  | required data type |
++----------------+--------------------+--------------------+
+| first_name     | TEXT               | VARCHAR(255)       |
+| last_name      | TEXT               | VARCHAR(255)       |
+| date_of_birth  | TEXT               | DATE               |
+| country_code   | TEXT               | VARCHAR(2)         |
+| user_uuid      | TEXT               | UUID               |
+| join_date      | TEXT               | DATE               |
++----------------+--------------------+--------------------+
+
+ALTER TABLE dim_users
+ALTER COLUMN first_name TYPE VARCHAR(255),
+ALTER COLUMN last_name TYPE VARCHAR(255),
+ALTER COLUMN date_of_birth TYPE DATE,
+ALTER COLUMN country_code TYPE VARCHAR(2),
+ALTER COLUMN user_uuid TYPE UUID USING user_uuid::UUID,
+ALTER COLUMN join_date TYPE DATE;
+
+**Task 3 (1): Casting the columns of the dim_store_details table to the correct datatypes.**
+
++---------------------+-------------------+------------------------+
+| store_details_table | current data type |   required data type   |
++---------------------+-------------------+------------------------+
+| longitude           | TEXT              | FLOAT                  |
+| locality            | TEXT              | VARCHAR(255)           |
+| store_code          | TEXT              | VARCHAR(15)            |
+| staff_numbers       | TEXT              | SMALLINT               |
+| opening_date        | TEXT              | DATE                   |
+| store_type          | TEXT              | VARCHAR(255) NULLABLE  |
+| latitude            | TEXT              | FLOAT                  |
+| country_code        | TEXT              | VARCHAR(2)             |
+| continent           | TEXT              | VARCHAR(255)           |
++---------------------+-------------------+------------------------+
+
+ALTER TABLE dim_store_details
+ALTER COLUMN longitude TYPE FLOAT,
+ALTER COLUMN "location" TYPE VARCHAR(255),
+ALTER COLUMN store_code TYPE VARCHAR(15),
+ALTER COLUMN staff_numbers TYPE SMALLINT,
+ALTER COLUMN opening_date TYPE DATE,
+ALTER COLUMN store_type TYPE VARCHAR(255),
+ALTER COLUMN store_type DROP NOT NULL,
+ALTER COLUMN latitude TYPE FLOAT,
+ALTER COLUMN country_code TYPE VARCHAR(2),
+ALTER COLUMN continent TYPE VARCHAR(255);
+
+**Task 3 (2): Changing the [null] values within the website locaton to `N/A`**
+
+UPDATE dim_store_details
+SET "location" = COALESCE("location", 'N/A')
+WHERE "location" IS NULL;
+
+**Task 4: Adding a new column to the dim_products table for weight class**
+
+Step 1, add a new column:
+
+ALTER TABLE dim_products
+ADD COLUMN weight_class VARCHAR(20);
+
+Step 2, update the column with the weights:
+
+UPDATE dim_products
+SET weight_class =
+CASE 
+    WHEN "weight (kg)" < 2.0 THEN 'Light'
+    WHEN "weight (kg)" BETWEEN 2.0 AND 40.0 THEN 'Mid_Sized'
+    WHEN "weight (kg)" BETWEEN 40.01 AND 140.0 THEN 'Heavy'
+    ELSE 'Truck_Required'
+END;
+
+**Task 5: Update the dim_products table with the required data types.**
+
++-----------------+--------------------+--------------------+
+|  dim_products   | current data type  | required data type |
++-----------------+--------------------+--------------------+
+| product_price   | TEXT               | FLOAT              |
+| weight          | TEXT               | FLOAT              |
+| EAN             | TEXT               | VARCHAR(?)         |
+| product_code    | TEXT               | VARCHAR(?)         |
+| date_added      | TEXT               | DATE               |
+| uuid            | TEXT               | UUID               |
+| still_available | TEXT               | BOOL               |
+| weight_class    | TEXT               | VARCHAR(?)         |
++-----------------+--------------------+--------------------+
+
+As "still_available" is required as BOOL, we need to set this to True/False instead of its current values.
+
+Firstly, we check how many distinct items are within this column:
+
+SELECT DISTINCT still_available
+FROM dim_products
+
+> Output gives 2 rows: Still_avaliable | Removed
+
+Next step is to make these equal true or false using a CASE WHEN:
+
+UPDATE dim_products
+SET still_available =
+CASE 
+	WHEN still_available = 'Still_avaliable' THEN 'True'
+	WHEN still_available = 'Removed' THEN 'False'
+END;
+
+Finally, all columns can be set to the correct data types:
+
+ALTER TABLE dim_products
+ALTER COLUMN "EAN" TYPE VARCHAR(20),
+ALTER COLUMN product_code TYPE VARCHAR(15),
+ALTER COLUMN "uuid" TYPE UUID USING "uuid"::UUID,
+ALTER COLUMN still_available TYPE BOOL USING still_available::BOOLEAN,
+ALTER COLUMN weight_class TYPE VARCHAR(15);
+
+**Task 6: Update the dim_date_times table with the correct data types**
+
++-----------------+-------------------+--------------------+
+| dim_date_times  | current data type | required data type |
++-----------------+-------------------+--------------------+
+| month           | TEXT              | VARCHAR(?)         |
+| year            | TEXT              | VARCHAR(?)         |
+| day             | TEXT              | VARCHAR(?)         |
+| time_period     | TEXT              | VARCHAR(?)         |
+| date_uuid       | TEXT              | UUID               |
++-----------------+-------------------+--------------------+
+
+Within the data cleaning, I have already concatenated month, year & day to be in ISO format as a timestamp.
+
+ALTER TABLE dim_date_times
+ALTER COLUMN time_period TYPE VARCHAR(10),
+ALTER COLUMN date_uuid TYPE UUID USING date_uuid::UUID;
+
+**Task 7: Updating the dim_card_details table with the correct datatypes**
+
++------------------------+-------------------+--------------------+
+|    dim_card_details    | current data type | required data type |
++------------------------+-------------------+--------------------+
+| card_number            | TEXT              | VARCHAR(?)         |
+| expiry_date            | TEXT              | VARCHAR(?)         |
+| date_payment_confirmed | TEXT              | DATE               |
++------------------------+-------------------+--------------------+
+
+Within the data cleaning stage, the two date columns have already been made into dates.
+
+ALTER TABLE dim_card_details
+ALTER COLUMN card_number TYPE VARCHAR(20);
+
+**Task 8: Create the primary keys in the dimension tables.**
+
+ALTER TABLE dim_card_details
+ADD CONSTRAINT dim_card_details_pkey PRIMARY KEY (card_number);
+
+ALTER TABLE dim_date_times
+ADD CONSTRAINT dim_date_times_pkey PRIMARY KEY (date_uuid);
+
+ALTER TABLE dim_products
+ADD CONSTRAINT dim_products_pkey PRIMARY KEY (product_code);
+
+ALTER TABLE dim_store_details
+ADD CONSTRAINT dim_store_details_pkey PRIMARY KEY (store_code);
+
+ALTER TABLE dim_users
+ADD CONSTRAINT dim_users_pkey PRIMARY KEY (user_uuid);
+
+**Task 9: Adding Foreign Keys to the orders_table**
+
+ALTER TABLE orders_table
+ADD CONSTRAINT fk_card_number FOREIGN KEY (card_number) REFERENCES dim_card_details (card_number),
+ADD CONSTRAINT fk_date_uuid FOREIGN KEY (date_uuid) REFERENCES dim_date_times (date_uuid);
+ADD CONSTRAINT fk_product_code FOREIGN KEY (product_code) REFERENCES dim_products (product_code);
+ADD CONSTRAINT fk_store_code FOREIGN KEY (store_code) REFERENCES dim_store_details (store_code);
+ADD CONSTRAINT fk_card_number FOREIGN KEY (user_uuid) REFERENCES dim_users (user_uuid);
+
+----- END -----
