@@ -37,6 +37,7 @@ class DataCleaning:
         dc.upload_to_db(self.clean_date_details_df)
 
     def clean_user_data(self):
+
         # Dropping duplicates & null values
         cleaning_users_df = self.users_df.dropna()
         cleaning_users_df = cleaning_users_df.drop_duplicates()
@@ -89,9 +90,10 @@ class DataCleaning:
     
     # Cleaning the card details data
     def clean_card_data(self):
+        cleaning_card_df = self.card_df.copy()
 
         # Taking the card details from the init method into the function, dropping NaN rows & duplicates.
-        cleaning_card_df = self.card_df.dropna()
+        cleaning_card_df = cleaning_card_df.dropna()
         cleaning_card_df = cleaning_card_df.drop_duplicates()
         
         # Using a regex on the expiry date to check for null values and dropping them.

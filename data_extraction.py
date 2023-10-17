@@ -31,10 +31,8 @@ class DataExtractor:
     # Retrieving card data from a pdf file using tabula
     def retrieve_pdf_data(self):
         pdf_path = "https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf"
-        card_details_df = tabula.read_pdf(pdf_path, pages='all', stream=True)
+        card_details_df = tabula.read_pdf(pdf_path, pages='all', stream=False)
         card_details_df = pd.concat(card_details_df, ignore_index=True)
-        card_details_df.drop("card_number expiry_date", axis=1, inplace=True)
-        card_details_df.drop("Unnamed: 0", axis=1, inplace=True)
         return card_details_df
 
     def list_number_of_stores(self):

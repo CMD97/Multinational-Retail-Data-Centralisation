@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine
 import yaml
 
 class DatabaseConnector:
@@ -25,9 +25,9 @@ class DatabaseConnector:
         return sql_dict
 
 # engine creation to SQL using the credentials of sql_dict.
-    def upload_to_db(self, date_details_df):      
+    def upload_to_db(self, df):      
         upload_engine = create_engine(f"{'postgresql'}+{'psycopg2'}://{self.sql_dict['USER']}:{self.sql_dict['PASSWORD']}@{self.sql_dict['HOST']}:{self.sql_dict['PORT']}/{self.sql_dict['DATABASE']}")
-        date_details_df.to_sql('orders_table', upload_engine, index=False)
+        df.to_sql('dim_date_times', upload_engine, index=False)
 
 # Reading in the headers needed for the API request.
     def read_api_creds(self):
