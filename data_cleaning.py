@@ -157,9 +157,6 @@ class DataCleaning:
         new_column_order = ['store_code', 'store_type', 'address', 'locality', 'longitude', 'latitude', 'country_code', 'continent', 'staff_numbers', 'opening_date']
         cleaning_store_data_df = cleaning_store_data_df[new_column_order]
 
-        # Renaming locality to location
-        cleaning_store_data_df.rename(columns={'locality': 'location'}, inplace=True)
-
         return cleaning_store_data_df
     
     # Function to get all rows present with only numbers  
