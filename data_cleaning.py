@@ -28,7 +28,7 @@ class DataCleaning:
         # self.orders_df = de.df_rds_table
         # self.clean_orders_df = self.clean_orders_data()
 
-        # Cleaning of the date_details.
+        # # Cleaning of the date_details.
         self.date_details_df = de.extract_from_s3()
         self.clean_date_details_df = self.clean_date_details()
 
@@ -109,6 +109,7 @@ class DataCleaning:
         cleaning_card_df['expiry_date'] = cleaning_card_df['expiry_date'].apply(self.convert_expiry_date)
 
         # Changing the payment date confirmed dtype to a date dtype.
+        cleaning_card_df['date_payment_confirmed'] = cleaning_card_df['date_payment_confirmed'].apply(self.standardise_date_format)
         cleaning_card_df['date_payment_confirmed'] = pd.to_datetime(cleaning_card_df['date_payment_confirmed'], format='%Y-%m-%d', errors='coerce').dt.date
 
         return cleaning_card_df
