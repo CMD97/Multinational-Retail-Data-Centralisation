@@ -2,7 +2,6 @@ from data_extraction import DataExtractor
 from database_utils import DatabaseConnector
 import pandas as pd
 import re
-import numpy as np
 
 class DataCleaning:
     def __init__(self):
