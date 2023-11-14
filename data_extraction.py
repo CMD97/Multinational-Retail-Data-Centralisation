@@ -52,7 +52,13 @@ class DataExtractor:
         store_details_df = pd.DataFrame(store_details)
         return store_details_df
     
-    def extract_from_s3(self):
+    def extract_from_s3_csv(self):
+        s3 = boto3.client('s3')
+        s3.download_file('data-handling-public', 'products.csv', 'products.csv')
+        products_df = pd.read_csv('products.csv')
+        return products_df
+    
+    def extract_from_s3_json(self):
         s3 = boto3.client('s3')
         s3.download_file('data-handling-public', 'date_details.json', 'date_details.json')
         date_details_df = pd.read_json('date_details.json')
