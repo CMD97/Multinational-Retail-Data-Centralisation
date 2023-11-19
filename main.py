@@ -97,12 +97,7 @@ def upload_dim_date_times():
     # Uploading to SQL with DatabaseConnector class.
     du.upload_sequence(clean_df, table_name='dim_date_times')
 
-if __name__ == '__main__':
-
-    de = DataExtractor()
-    dc = DataCleaning()
-    du = DatabaseConnector()
-
+def choose_upload():
     while True:
         choose_table = input('''You can insert into 6 tables from:
 
@@ -151,3 +146,14 @@ if __name__ == '__main__':
 
         else:
             print('\nMake sure you\'re inputting the name exactly.\n')
+
+
+
+if __name__ == '__main__':
+
+    de = DataExtractor()
+    dc = DataCleaning()
+    du = DatabaseConnector()
+
+    choose_upload()
+
