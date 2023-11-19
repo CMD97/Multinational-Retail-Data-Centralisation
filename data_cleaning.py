@@ -1,44 +1,14 @@
-from data_extraction import DataExtractor
-from database_utils import DatabaseConnector
 import pandas as pd
 import re
 
 class DataCleaning:
-    def __init__(self):
-        de = DataExtractor()  # Creating a reference to the DataExtractor class to begin the process of cleaning.
+    def clean_user_data(self, users_df):
 
-        # Cleaning of users in the sales data.
-        # self.users_df = de.df_rds_table
-        # self.clean_data = self.clean_user_data()
-
-        # Cleaning of the card details in the sales data.
-        # self.card_df = de.card_details_df
-        # self.clean_card_df = self.clean_card_data()
-
-        # Cleaning of the store details in the sales data.
-        # self.store_data_df = de.store_details_df
-        # self.clean_store_df = self.clean_store_data()
-
-        # Cleaning of the products in the sales data.
-        # self.products_data_df = pd.read_csv('products.csv')
-        # self.clean_products_df = self.clean_products_data()
-
-        # Cleaning of the orders in the sales data.
-        # self.orders_df = de.df_rds_table
-        # self.clean_orders_df = self.clean_orders_data()
-
-        # # Cleaning of the date_details.
-        self.date_details_df = de.extract_from_s3()
-        self.clean_date_details_df = self.clean_date_details()
-
-        # Uploading to the SQL database which is taken in within the database_utils file.
-        dc = DatabaseConnector()
-        dc.upload_to_db(self.clean_date_details_df)
-
-    def clean_user_data(self):
+        # Creating a copy for best practice
+        cleaning_users_df = users_df.copy()
 
         # Dropping duplicates & null values
-        cleaning_users_df = self.users_df.dropna()
+        cleaning_users_df = cleaning_users_df.dropna()
         cleaning_users_df = cleaning_users_df.drop_duplicates()
 
         # Dropping the "index" column that's taken through to pgAdmin4
@@ -88,8 +58,9 @@ class DataCleaning:
             return cleaned_numbers
     
     # Cleaning the card details data
-    def clean_card_data(self):
-        cleaning_card_df = self.card_df.copy()
+    def clean_card_data(self, card_details_df):
+
+        cleaning_card_df = card_details_df.copy()
 
         # Taking the card details from the init method into the function, dropping NaN rows & duplicates.
         cleaning_card_df = cleaning_card_df.dropna()
@@ -119,8 +90,8 @@ class DataCleaning:
         date_object = pd.Timestamp(f'{expiry_year}-{month}-01') + pd.DateOffset(months=1, days=-1)
         return date_object.date()
     
-    def clean_store_data(self):
-        cleaning_store_data_df = self.store_data_df.copy()
+    def clean_store_data(self, store_details_df):
+        cleaning_store_data_df = store_details_df.copy()
 
         # Dropping the column `lat` as it carries all [null] values.
         cleaning_store_data_df.drop('lat', axis=1, inplace=True)
@@ -179,9 +150,10 @@ class DataCleaning:
 
         return date_strings
     
-    def clean_products_data(self):
+    def clean_products_data(self, products_df):
+        cleaning_products_df = products_df.copy()
+
         # Dropping any rows that are null & dropping the original index
-        cleaning_products_df = self.products_data_df.copy()
         cleaning_products_df = cleaning_products_df.dropna()
         cleaning_products_df.drop("Unnamed: 0", axis=1, inplace=True)
 
@@ -214,7 +186,7 @@ class DataCleaning:
 
     def convert_product_weights(self, weight_string):
         # Using a regex to iterate over the rows removing anything that isn't a letter from the end of the string.
-        weight_string = re.sub(r'[^a-zA-Z]+$', '', weight_string) 
+        weight_string = re.sub(r'[^a-zA-Z]+$', '', weight_string)
 
         # Converting all weights within the weight column to standardised kg.
         if " x " in weight_string:
@@ -232,10 +204,12 @@ class DataCleaning:
         else:
             return weight_string
 
-    def clean_orders_data(self):
-        cleaning_orders = self.orders_df.copy()
+    def clean_orders_data(self, orders_df):
+        
+        # Creating a copy for best practice.
+        cleaning_orders = orders_df.copy()
 
-    # Dropping columns that are unnecessary or have the majority of rows with NULL in them.
+        # Dropping columns that are unnecessary or have the majority of rows with NULL in them.
         cleaning_orders = cleaning_orders.drop(['level_0', 'index', '1', 'first_name', 'last_name'], axis=1)
 
         # Card number was originally a bigint, this should be a string.
@@ -245,29 +219,31 @@ class DataCleaning:
         cleaning_orders['product_quantity'] = cleaning_orders['product_quantity'].astype('int32')
         return cleaning_orders
     
-    def clean_date_details(self):
-        cleaning_date_details_df = self.date_details_df.copy()
+    def clean_date_details(self, date_times_df):
+
+        # Creating a copy for best practice.
+        cleaning_date_times_df = date_times_df.copy()
 
         # Dropping rows where the year is not exactly 4 digits long.
         year_pattern = re.compile(r'^\d{4}$')
-        incorrect_rows = ~cleaning_date_details_df['year'].str.contains(year_pattern)
-        cleaning_date_details_df = cleaning_date_details_df[~incorrect_rows]
+        incorrect_rows = ~cleaning_date_times_df['year'].str.contains(year_pattern)
+        cleaning_date_times_df = cleaning_date_times_df[~incorrect_rows]
 
         # Creating a new timestamp column from the 4 columns the timestamp was spread over.
-        cleaning_date_details_df['sale_timestamp'] = (cleaning_date_details_df['year'] + '-' + cleaning_date_details_df['month'] + '-' + 
-                                                       cleaning_date_details_df['day'] + ' ' + cleaning_date_details_df['timestamp'])
+        cleaning_date_times_df['sale_timestamp'] = (cleaning_date_times_df['year'] + '-' + cleaning_date_times_df['month'] + '-' + 
+                                                       cleaning_date_times_df['day'] + ' ' + cleaning_date_times_df['timestamp'])
         
         # Dropping the columns that were used to concatenate the new timestamp
-        cleaning_date_details_df.drop(['timestamp', 'month', 'year', 'day'], axis=1, inplace=True)
+        cleaning_date_times_df.drop(['timestamp', 'month', 'year', 'day'], axis=1, inplace=True)
 
         # Changing the new timestamp to a datetime object.
-        cleaning_date_details_df['sale_timestamp'] = pd.to_datetime(cleaning_date_details_df['sale_timestamp'])
+        cleaning_date_times_df['sale_timestamp'] = pd.to_datetime(cleaning_date_times_df['sale_timestamp'])
         
         # Reordering columns
         new_column_order = ['sale_timestamp', 'time_period', 'date_uuid']
-        cleaning_date_details_df = cleaning_date_details_df[new_column_order]
+        cleaning_date_times_df = cleaning_date_times_df[new_column_order]
 
-        return cleaning_date_details_df
+        return cleaning_date_times_df
 
 
 if __name__ == '__main__':
