@@ -54,3 +54,17 @@ Below is a brief explanation of both:
 **Milestone 3** : This milestone entailed development of the schema, and ensuring each column within each table has the correct datatype set to the column in order to query the data correctly.
 
 **Milestone 4** : After the schema and corrected datatypes were in place, the fictional company began to set analysis tasks to be able to utilise the SQL queries.
+
+### Improvements
+
+Improvements will be marked with bullet points, with priority of the best improvements to make, to ones of least importance:
+
+- Within `data_cleaning.py` there is a lot of lines of code, specifically with methods that are used within each of the 6 main methods, I would like to move the 'extra' methods into a different file to be called upon when needed, which allows for easier readability when trying to see what is being cleaned where and then it can be referred back to.
+
+- Allowing errors to be caught easier; each part of the code could be ran by try/except blocks to be able to catch any error that surfaces and can then be tackled at the route, rather than having to sieve through the default error messages to locate the issue.
+
+- Allowing the program to be more versatile; as this program is intended for usage of singular data, it may be the case that the table could be the same, but the extraction method is different, e.g. being able to have the store details be taken from a pdf, and processed within the same cleaning method. This would be achieved through the addition of more user inputs.
+
+- The implementation of unit tests as this will ensure the accuracy of the process, catching errors early on will promote efficiency when writing the code.
+
+- The final improvement would be within the phone numbers section, as I have put regex formulae to be able to standardise phone numbers, and a way to ensure US phone numbers are corrected, however this could be improved by creating further regex for the DE & GB numbers. Upon further analysis, it would also be possible to obtain US area codes to ensure the numbers within the table are actually part of the US system.
