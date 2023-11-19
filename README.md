@@ -47,7 +47,7 @@ Once the datasets were cleaned using the Pandas library, the finalised data was 
 
 ### Milestone 3 & 4
 
-Milestones 3 & 4 were both performed using postgreSQL inside pgAdmin4. As there is no recollection of them on VSCode, there is `.txt` files that are named respectively which have the queries inside that were executed, as well as a detail of what was being requested.
+Milestones 3 & 4 were both performed using postgreSQL inside pgAdmin4. As there is no recollection of them on VSCode, there is `.txt` & `.ipynb` files that are named respectively which have the queries inside that were executed, as well as a detail of what was being requested.
 
 Below is a brief explanation of both:
 
