@@ -145,7 +145,7 @@ def choose_upload():
             break
 
         else:
-            print('\nMake sure you\'re inputting the exact name.\n')
+            print('\nMake sure you\'re inputting the exact name as it is displayed.\n')
 
 
 
