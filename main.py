@@ -111,35 +111,53 @@ def choose_upload():
         select one or type `exit` to end program:  ''' ).lower()
 
         if choose_table == 'users':
-            upload_dim_users()
-            print('\nUpload Successful. Run `main.py` again to upload another.')
-            break
+            try:
+                upload_dim_users()
+                print('\nUpload Successful. Run `main.py` again to upload another.')
+                break
+            except ValueError:
+                print('\nThis table already exists in the database, please try another.\n')
 
         elif choose_table == 'card details':
-            upload_dim_card_details()
-            print('\nUpload Successful. Run `main.py` again to upload another.')
-            break
+            try:
+                upload_dim_card_details()
+                print('\nUpload Successful. Run `main.py` again to upload another.')
+                break
+            except ValueError:
+                print('\nThis table already exists in the database, please try another.\n')
 
         elif choose_table == 'store details':
-            upload_dim_store_details()
-            print('\nUpload Successful. Run `main.py` again to upload another.')
-            break
+            try:
+                upload_dim_store_details()
+                print('\nUpload Successful. Run `main.py` again to upload another.')
+                break
+            except ValueError:
+                print('\nThis table already exists in the database, please try another.\n')
 
         elif choose_table == 'products details':
-            upload_dim_products()
-            print('\nUpload Successful. Run `main.py` again to upload another.')
-            break
+            try:
+                upload_dim_products()
+                print('\nUpload Successful. Run `main.py` again to upload another.')
+                break
+            except ValueError:
+                print('\nThis table already exists in the database, please try another.\n')
 
         elif choose_table == 'orders table':
-            upload_orders_table()
-            print('\nUpload Successful. Run `main.py` again to upload another.')
-            break
+            try:
+                upload_orders_table()
+                print('\nUpload Successful. Run `main.py` again to upload another.')
+                break
+            except ValueError:
+                print('\nThis table already exists in the database, please try another.\n')
 
         elif choose_table == 'date times':
-            upload_dim_date_times()
-            print('\nUpload Successful. Run `main.py` again to upload another.')
-            break
-        
+            try:
+                upload_dim_date_times()
+                print('\nUpload Successful. Run `main.py` again to upload another.')
+                break
+            except ValueError:
+                print('\nThis table already exists in the database, please try another.\n')   
+                     
         elif choose_table == 'exit':
             print('\nYou have quit the program, run `main.py` again to upload a table to the database.')
             break
