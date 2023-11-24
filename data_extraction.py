@@ -1,11 +1,8 @@
 from sqlalchemy import inspect
-from database_utils import DatabaseConnector
 import pandas as pd
 import tabula
 import requests
 import boto3
-
-dc = DatabaseConnector()
 
 class DataExtractor:
 
