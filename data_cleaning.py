@@ -40,8 +40,11 @@ class DataCleaning:
         cleaning_users_df['join_date'] = pd.to_datetime(cleaning_users_df['join_date'], errors='coerce').dt.date
 
         return cleaning_users_df
+    
+    # An improvement to be made in this method to clean the numbers.
 
-    def standardise_phone_number(self, phone_number):                       # standardising phone numbers --- improvements to be made upon the phone_number
+    @staticmethod
+    def standardise_phone_number(phone_number):
 
         # Regex to get all rows present with only numbers                       
         numbers_only_pattern = re.compile(r'\d+')
@@ -84,7 +87,8 @@ class DataCleaning:
 
         return cleaning_card_df
 
-    def convert_expiry_date(self, expiry_date):
+    @staticmethod
+    def convert_expiry_date(expiry_date):
         month, expiry_year = expiry_date.split('/')
         expiry_year = '20' + expiry_year # Expiry dates will only be present for the expiry_year `2000+` hence `20 + expiry_year`
         date_object = pd.Timestamp(f'{expiry_year}-{month}-01') + pd.DateOffset(months=1, days=-1)
@@ -131,14 +135,16 @@ class DataCleaning:
         return cleaning_store_data_df
     
     # Function to get all rows present with only numbers  
-    def returning_numbers_only(self, uncleaned_number):                       
+    @staticmethod
+    def returning_numbers_only(uncleaned_number):                       
         discarding_letters_pattern = re.compile(r'\d+')
         matches = re.finditer(discarding_letters_pattern, uncleaned_number)
         cleaned_numbers = ''.join(match.group() for match in matches)
         return cleaned_numbers
     
     # Function to return all the date strings into the right format
-    def standardise_date_format(self, date_strings):
+    @staticmethod
+    def standardise_date_format(date_strings):
         date_formats = ['%Y-%m-%d', '%B %Y %d', '%Y/%m/%d', '%Y %B %d']
 
         for date_format in date_formats:
@@ -183,8 +189,9 @@ class DataCleaning:
         cleaning_products_df.rename(columns={'removed': 'still_available'}, inplace=True)
 
         return cleaning_products_df
-
-    def convert_product_weights(self, weight_string):
+    
+    @staticmethod
+    def convert_product_weights(weight_string):
         # Using a regex to iterate over the rows removing anything that isn't a letter from the end of the string.
         weight_string = re.sub(r'[^a-zA-Z]+$', '', weight_string)
 
