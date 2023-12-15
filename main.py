@@ -1,6 +1,8 @@
 from database_utils import DatabaseConnector
 from data_extraction import DataExtractor
 from data_cleaning import DataCleaning
+from dotenv import load_dotenv
+import os
 
 def upload_dim_users():
 
@@ -26,32 +28,41 @@ def upload_dim_users():
     du.upload_sequence(clean_df, table_name='dim_users')
 
 def upload_dim_card_details():
+    
+    # Loading in the .env file and taking the necessary URL
+    load_dotenv()
+    pdf_url = os.getenv("PDF_URL")
 
     # Retrieving the card details from the PDF document inside the AWS S3 bucket.
-    card_details_df = de.retrieve_pdf_data(pdf_path = "https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf")
+    card_details_df = de.retrieve_pdf_data(pdf_path = pdf_url)
 
     # Cleaning the card details through the method in the DataCleaning class.
     clean_df = dc.clean_card_data(card_details_df)
 
     # Uploading to the SQL Database
-    du.upload_sequence(clean_df, table_name='dim_card_details')
+    du.upload_sequence(clean_df, table_name='dim_card_details_test')
 
 def upload_dim_store_details():
+
+    # Loading in the .env file & taking the URLs
+    load_dotenv()
+    store_number_url = os.getenv("STORE_NUMBER_API_URL")
+    store_data_url = os.getenv("STORE_DATA_API_URL")
 
     # As the store details are stored within an API, the headers need to be read in from the .yaml file.
     headers = du.read_api_creds(api_key='api.yaml')
     
     # Finding how many stores are present within the table.
-    number_of_stores = de.list_number_of_stores(headers)
+    number_of_stores = de.list_number_of_stores(store_number_url, headers)
 
     # Now the number of stores has been found, it's now possible to use this as a range to return all the stores from within the API.
-    store_details_df = de.retrieve_stores_data(number_of_stores, headers)
+    store_details_df = de.retrieve_stores_data(number_of_stores, store_data_url, headers)
 
     # Cleaning the store details through the DataCleaning class.
     clean_df = dc.clean_store_data(store_details_df)
 
     # Utilising method in DatabaseConnector to upload store details the SQL Database.
-    du.upload_sequence(clean_df, table_name='dim_store_details')
+    du.upload_sequence(clean_df, table_name='dim_store_details_test')
 
 def upload_dim_products():
 
@@ -89,7 +100,7 @@ def upload_orders_table():
 
 def upload_dim_date_times():
     # Retrieving the csv from the S3 using boto3.
-    date_times_df = de.extract_from_s3_json(bucket='data-handling-public', object='date_details.json', local_name='date_details.json')
+    date_times_df = de.extract_from_s3(bucket='data-handling-public', object='date_details.json', local_name='date_details.json')
 
     # Cleaning the products df taken from the S3 bucket in the DataCleaning class.
     clean_df = dc.clean_date_details(date_times_df)

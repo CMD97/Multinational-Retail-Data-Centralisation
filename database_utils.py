@@ -18,9 +18,12 @@ class DatabaseConnector:
             headers = {'x-api-key': api_key_value}
             return headers
         
-# engine creation to AWS using the credentials of rds_dict.
+# Engine creation to AWS using the credentials of rds_dict.
     def init_db_engine(self, creds):
-        engine = create_engine(f"{'postgresql'}+{'psycopg2'}://{creds['USER']}:{creds['PASSWORD']}@{creds['HOST']}:{creds['PORT']}/{creds['DATABASE']}")
+        engine = create_engine(
+            f"{'postgresql'}+{'psycopg2'}://{creds['USER']}:{creds['PASSWORD']}@"
+            f"{creds['HOST']}:{creds['PORT']}/{creds['DATABASE']}"
+        )
         return engine
 
 # Uploading to pgAdmin.
