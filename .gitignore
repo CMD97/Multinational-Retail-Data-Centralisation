@@ -1,7 +1,7 @@
+.env
 db_creds.yaml
 to_sql.yaml
 api.yaml
-area-codes.csv
 store_details.csv
 products.csv
 date_details.json
