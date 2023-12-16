@@ -4,8 +4,22 @@ from data_cleaning import DataCleaning
 from dotenv import load_dotenv
 import os
 
-def upload_dim_users():
+"""
+This is the main file for usage of the ETL process for the Multinational Retail Data Centralisation.
 
+When this file is ran, it will give the option to perform the ETL process on one of six tables.
+
+Once the process is finished, a completion message will show and state to run the file again to upload another.
+
+Errors handled within this file; incorrect inputs & error message shown if the table exists.
+"""
+def upload_dim_users():
+    """
+    Upload data to the 'dim_users' table in the SQL Database.
+
+    Retrieves user data from the RDS Database, cleans it using DataCleaning class,
+    and uploads the cleaned data to the 'dim_users' table using DatabaseConnector class.
+    """
     # Getting credentials for the engine to the RDS Database.
     rds_creds = du.read_db_creds('db_creds.yaml')
 
@@ -28,7 +42,12 @@ def upload_dim_users():
     du.upload_sequence(clean_df, table_name='dim_users')
 
 def upload_dim_card_details():
-    
+    """
+    Upload data to the 'dim_card_details_test' table in the SQL Database.
+
+    Retrieves card details from a PDF document, cleans it using DataCleaning class,
+    and uploads the cleaned data to the 'dim_card_details_test' table using DatabaseConnector class.
+    """
     # Loading in the .env file and taking the necessary URL
     load_dotenv()
     pdf_url = os.getenv("PDF_URL")
@@ -43,7 +62,12 @@ def upload_dim_card_details():
     du.upload_sequence(clean_df, table_name='dim_card_details_test')
 
 def upload_dim_store_details():
+    """
+    Upload data to the 'dim_store_details_test' table in the SQL Database.
 
+    Retrieves store details from an API, cleans it using DataCleaning class,
+    and uploads the cleaned data to the 'dim_store_details_test' table using DatabaseConnector class.
+    """
     # Loading in the .env file & taking the URLs
     load_dotenv()
     store_number_url = os.getenv("STORE_NUMBER_API_URL")
@@ -65,7 +89,12 @@ def upload_dim_store_details():
     du.upload_sequence(clean_df, table_name='dim_store_details_test')
 
 def upload_dim_products():
+    """
+    Upload data to the 'dim_products' table in the SQL Database.
 
+    Retrieves product data from an S3 bucket, cleans it using DataCleaning class,
+    and uploads the cleaned data to the 'dim_products' table using DatabaseConnector class.
+    """
     # Retrieving the csv from the S3 using boto3.
     products_df = de.extract_from_s3(bucket='data-handling-public', object='products.csv', local_name='products.csv')
 
@@ -76,7 +105,12 @@ def upload_dim_products():
     du.upload_sequence(clean_df, table_name='dim_products')
 
 def upload_orders_table():
+    """
+    Upload data to the 'orders_table' table in the SQL Database.
 
+    Retrieves orders data from the RDS Database, cleans it using DataCleaning class,
+    and uploads the cleaned data to the 'orders_table' table using DatabaseConnector class.
+    """
     # Getting credentials for the engine to the RDS Database.
     rds_creds = du.read_db_creds('db_creds.yaml')
 
@@ -99,6 +133,12 @@ def upload_orders_table():
     du.upload_sequence(clean_df, table_name='orders_table')
 
 def upload_dim_date_times():
+    """
+    Upload data to the 'dim_date_times' table in the SQL Database.
+
+    Retrieves date details from an S3 bucket, cleans it using DataCleaning class,
+    and uploads the cleaned data to the 'dim_date_times' table using DatabaseConnector class.
+    """
     # Retrieving the csv from the S3 using boto3.
     date_times_df = de.extract_from_s3(bucket='data-handling-public', object='date_details.json', local_name='date_details.json')
 
@@ -109,6 +149,12 @@ def upload_dim_date_times():
     du.upload_sequence(clean_df, table_name='dim_date_times')
 
 def choose_upload():
+    """
+    Provide a user interface to choose which table to upload.
+
+    Allows the user to choose a table to upload to the SQL Database by calling
+    the corresponding upload function. Handles user input and provides feedback.
+    """
     while True:
         choose_table = input('''You can insert into 6 tables from:
 

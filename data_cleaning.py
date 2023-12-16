@@ -3,7 +3,22 @@ import re
 
 class DataCleaning:
     def clean_user_data(self, users_df):
+        """
+        Clean user data by performing the following steps:
+        - Remove duplicates and null values.
+        - Drop the "index" column.
+        - Set required types to category.
+        - Standardize country names and codes.
+        - Drop rows with incorrect country codes.
+        - Format phone numbers using the standardise_phone_number method.
+        - Set required columns to datetime.
 
+        Parameters:
+        - users_df (pandas.DataFrame): DataFrame containing uncleaned user data.
+
+        Returns:
+        pandas.DataFrame: Cleaned user data, ready for upload via the DatabaseConnector class.
+        """
         # Creating a copy for best practice
         cleaning_users_df = users_df.copy()
 
@@ -40,12 +55,20 @@ class DataCleaning:
         cleaning_users_df['join_date'] = pd.to_datetime(cleaning_users_df['join_date'], errors='coerce').dt.date
 
         return cleaning_users_df
-    
-    # An improvement to be made in this method to clean the numbers.
 
     @staticmethod
     def standardise_phone_number(phone_number):
+        """
+        Usage: Inside the clean_user_data method.
 
+        Standardize a phone number by removing non-numeric characters and handling US-specific formatting.
+
+        Parameters:
+        - phone_number (str): Input phone number.
+
+        Returns:
+        str: Standardized phone number, which gets inserted back into the DataFrame.
+        """
         # Regex to get all rows present with only numbers                       
         numbers_only_pattern = re.compile(r'\d+')
         matches = re.finditer(numbers_only_pattern, phone_number)
@@ -60,9 +83,21 @@ class DataCleaning:
         else:
             return cleaned_numbers
     
-    # Cleaning the card details data
     def clean_card_data(self, card_details_df):
+        """
+        Clean card details data by performing the following steps:
+        - Remove duplicates and null values.
+        - Remove rows with incorrect expiry date format.
+        - Remove non-numeric characters from card numbers.
+        - Convert expiry dates to the last day of the month.
+        - Convert payment confirmation date to the correct format.
 
+        Parameters:
+        - card_details_df (pandas.DataFrame): DataFrame containing card details data.
+
+        Returns:
+        pandas.DataFrame: Cleaned card details data, ready for upload in the DatabaseConnector.
+        """
         cleaning_card_df = card_details_df.copy()
 
         # Taking the card details from the init method into the function, dropping NaN rows & duplicates.
@@ -89,12 +124,37 @@ class DataCleaning:
 
     @staticmethod
     def convert_expiry_date(expiry_date):
+        """
+        Usage: Used inside of the card details method above.
+
+        Convert an expiry date to the last day of the month, so it can follow an ISO format if needed to be used.
+
+        Parameters:
+        - expiry_date (str): Input expiry date.
+
+        Returns:
+        datetime.date: Converted expiry date, inserts back into the DataFrame.
+        """
         month, expiry_year = expiry_date.split('/')
         expiry_year = '20' + expiry_year # Expiry dates will only be present for the expiry_year `2000+` hence `20 + expiry_year`
         date_object = pd.Timestamp(f'{expiry_year}-{month}-01') + pd.DateOffset(months=1, days=-1)
         return date_object.date()
     
     def clean_store_data(self, store_details_df):
+        """
+        Clean store details data by performing the following steps:
+        - Drop unnecessary columns.
+        - Drop rows with incorrect country codes.
+        - Remove non-numeric characters from staff numbers.
+        - Set continent based on country code.
+        - Convert columns to the correct data types.
+
+        Parameters:
+        - store_details_df (pandas.DataFrame): DataFrame containing store details data.
+
+        Returns:
+        pandas.DataFrame: Cleaned store details data ready for upload via the DatabaseConnector.
+        """
         cleaning_store_data_df = store_details_df.copy()
 
         # Dropping the column `lat` as it carries all [null] values.
@@ -136,7 +196,18 @@ class DataCleaning:
     
     # Function to get all rows present with only numbers  
     @staticmethod
-    def returning_numbers_only(uncleaned_number):                       
+    def returning_numbers_only(uncleaned_number): 
+        """
+        Usage: In the methods of clean_store_data() & clean_card_data()
+
+        Extract numeric characters from a string.
+
+        Parameters:
+        - uncleaned_number (str): Input string containing numbers and characters.
+
+        Returns:
+        A string made of only numbers from the inputted string which contained numbers & characters.
+        """                      
         discarding_letters_pattern = re.compile(r'\d+')
         matches = re.finditer(discarding_letters_pattern, uncleaned_number)
         cleaned_numbers = ''.join(match.group() for match in matches)
@@ -145,6 +216,17 @@ class DataCleaning:
     # Function to return all the date strings into the right format
     @staticmethod
     def standardise_date_format(date_strings):
+        """
+        Usage: In the methods of clean_store_data() & clean_products_data()
+
+        Standardize date strings to the format '%Y-%m-%d'.
+
+        Parameters:
+        - date_strings (str): Input date string.
+
+        Returns:
+        str: Standardized date string, inserted back into cell in DataFrame.
+        """
         date_formats = ['%Y-%m-%d', '%B %Y %d', '%Y/%m/%d', '%Y %B %d']
 
         for date_format in date_formats:
@@ -157,6 +239,22 @@ class DataCleaning:
         return date_strings
     
     def clean_products_data(self, products_df):
+        """
+        Clean products data by performing the following steps:
+        - Drop null rows and unnecessary columns.
+        - Remove '£' from the product_price column.
+        - Remove rows with invalid prices.
+        - Convert weights to standardized kg.
+        - Standardize date formats.
+        - Convert columns to correct data types.
+        - Rename columns for clarity.
+
+        Parameters:
+        - products_df (pandas.DataFrame): DataFrame containing products data.
+
+        Returns:
+        pandas.DataFrame: Cleaned products data, ready to be uploaded within DatabaseConnector.
+        """
         cleaning_products_df = products_df.copy()
 
         # Dropping any rows that are null & dropping the original index
@@ -192,6 +290,17 @@ class DataCleaning:
     
     @staticmethod
     def convert_product_weights(weight_string):
+        """
+        Usage: For the method of cleaning the products data, as the weights are not standardised when taking the raw data.
+
+        Convert product weights to standardized kg from g, x * g, oz & ml. Also processes kg but doesn't flag these strings.
+
+        Parameters:
+        - weight_string (str): Input string containing product weights.
+
+        Returns:
+        float: Converted weight in kilograms, inserts back into DataFrame.
+        """
         # Using a regex to iterate over the rows removing anything that isn't a letter from the end of the string.
         weight_string = re.sub(r'[^a-zA-Z]+$', '', weight_string)
 
@@ -212,7 +321,18 @@ class DataCleaning:
             return weight_string
 
     def clean_orders_data(self, orders_df):
-        
+        """
+        Clean orders data by performing the following steps:
+        - Drop unnecessary columns.
+        - Convert card_number to string.
+        - Convert product_quantity to int32.
+
+        Parameters:
+        - orders_df (pandas.DataFrame): DataFrame containing uncleaned orders data.
+
+        Returns:
+        pandas.DataFrame: Cleaned orders data, ready for upload in DatabaseConnector.
+        """  
         # Creating a copy for best practice.
         cleaning_orders = orders_df.copy()
 
@@ -227,7 +347,19 @@ class DataCleaning:
         return cleaning_orders
     
     def clean_date_details(self, date_times_df):
+        """
+        Clean date details data by performing the following steps:
+        - Drop rows with incorrect year format.
+        - Create a new timestamp column.
+        - Drop unnecessary columns.
+        - Convert the new timestamp to a datetime object.
 
+        Parameters:
+        - date_times_df (pandas.DataFrame): DataFrame containing date details data.
+
+        Returns:
+        pandas.DataFrame: Cleaned date details data, ready for upload within DatabaseConnector.
+        """
         # Creating a copy for best practice.
         cleaning_date_times_df = date_times_df.copy()
 
