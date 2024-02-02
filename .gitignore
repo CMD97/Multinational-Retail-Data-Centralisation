@@ -1,10 +1,18 @@
+# Configuration file
 .env
+
+# Credentials
 db_creds.yaml
 to_sql.yaml
 api.yaml
+
+# Raw file data.
 store_details.csv
 products.csv
 date_details.json
+
+# Notebook to test functionality before implementing.
 mrdc.ipynb
-TestREADME.md
+
+# Cache created from running the project.
 __pycache__/
